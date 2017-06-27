@@ -1,0 +1,41 @@
+Create table temperature_data(date String, zip int, temp int) ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA LOCAL INPATH '/home/cloudera/Desktop/Projects/Hive/temp.txt' OVERWRITE INTO TABLE temperature_data;
+
+1. Fetch date and temperature from temperature_data where zip code is greater than 300000 and less than 399999.
+
+select * from temperature_data where zip > 300000 and zip < 399999;
+
+2. Calculate maximum temperature corresponding to every year from temperature_data table.
+
+select MAX(temp), SUBSTRING(date,6,10) as year from temperature_data where temp != 9999 group by date;
+
+3. Calculate maximum temperature from temperature_data table corresponding to those years which have at least 2 entries in the table.
+
+SELECT date, AVG(max_temperature)
+FROM (
+  SELECT date, MAX(temp) AS max_temperature
+  FROM temperature_data
+  WHERE temp != 9999
+  GROUP BY date
+
+) mt
+GROUP BY date;
+
+
+4. CREATE VIEW temp_v(dateString, tempint) AS SELECT date, AVG(max_temperature)
+FROM (
+  SELECT date, MAX(temp) AS max_temperature
+  FROM temperature_data
+  WHERE temp != 9999
+  GROUP BY date
+
+) mt
+GROUP BY date;
+
+5. Export contents from temperature_data_vw to a file in local file system, such that each file is '|' delimited.
+
+Insert Overwrite LOCAL DIRECTORY '/home/cloudera/Desktop/Projects/Hive/tempdata1.txt' Select * from temp_v;
+
